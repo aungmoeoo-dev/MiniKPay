@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniKPay.RestApi", "MiniKPay.RestApi\MiniKPay.RestApi.csproj", "{2BF55B81-2D97-4A66-869F-10720A4BA3B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2BF55B81-2D97-4A66-869F-10720A4BA3B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BF55B81-2D97-4A66-869F-10720A4BA3B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BF55B81-2D97-4A66-869F-10720A4BA3B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BF55B81-2D97-4A66-869F-10720A4BA3B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1AF260D8-AC3F-4907-BEDA-06E8A1874434}
+	EndGlobalSection
+EndGlobal
