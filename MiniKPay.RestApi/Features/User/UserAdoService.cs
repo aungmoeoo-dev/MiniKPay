@@ -3,9 +3,10 @@ using System.Data;
 
 namespace MiniKPay.RestApi.Features.User;
 
-public class UserAdoService : IUserService
+public class UserAdoService
 {
-	public UserModel GetUser(string mobileNo)
+
+	public bool IsMobileNoExist(string mobileNo)
 	{
 		SqlConnection connection = new(AppSettings.ConnectionString);
 
@@ -22,29 +23,17 @@ public class UserAdoService : IUserService
 
 		connection.Close();
 
-		DataRow row = dt.Rows[0];
-		var d = row["UserId"];
-
-		UserModel user = new()
-		{
-			UserId = row["UserID"].ToString(),
-			UserName = row["UserName"].ToString(),
-			UserMobileNo = row["UserMobileNo"].ToString(),
-			UserPassword = row["UserPassword"].ToString(),
-			UserBalance = (decimal)row["UserBalance"]
-		};
-
-		return user;
+		return dt.Rows.Count > 0;
 	}
 
-	public UserResponseModel RegisterUser(UserModel requestModel)
+	public UserResponseModel CreateUser(UserModel requestModel)
 	{
 		UserResponseModel responseModel = new();
 
 		#region Check if the required info are provided
-		if (requestModel.UserName is null
-			|| requestModel.UserMobileNo is null
-			|| requestModel.UserPassword is null)
+		if (requestModel.Name is null
+			|| requestModel.MobileNo is null
+			|| requestModel.Password is null)
 		{
 			responseModel.IsSuccessful = false;
 			responseModel.Message = "Required info not provided.";
@@ -52,19 +41,20 @@ public class UserAdoService : IUserService
 		}
 		#endregion
 
-		#region Check if the user already exists
-		UserModel user = GetUser(requestModel.UserMobileNo);
+		#region Check if the mobile number already exists
+		bool isExist = IsMobileNoExist(requestModel.MobileNo);
 
-		if (user is not null)
+		if (isExist)
 		{
 			responseModel.IsSuccessful = false;
-			responseModel.Message = "User already exists.";
+			responseModel.Message = "Mobile No. already exists.";
 			return responseModel;
 		}
 		#endregion
 
 		#region Create User
 		SqlConnection connection = new(AppSettings.ConnectionString);
+
 		connection.Open();
 
 		string query = @"INSERT INTO [dbo].[TBL_User]
@@ -79,10 +69,10 @@ public class UserAdoService : IUserService
            ,@UserBalance)";
 
 		SqlCommand cmd = new(query, connection);
-		cmd.Parameters.AddWithValue("@UserName", requestModel.UserName);
-		cmd.Parameters.AddWithValue("@UserMobileNo", requestModel.UserMobileNo);
-		cmd.Parameters.AddWithValue("@UserPassword", requestModel.UserPassword);
-		cmd.Parameters.AddWithValue("@UserBalance", requestModel.UserBalance);
+		cmd.Parameters.AddWithValue("@UserName", requestModel.Name);
+		cmd.Parameters.AddWithValue("@UserMobileNo", requestModel.MobileNo);
+		cmd.Parameters.AddWithValue("@UserPassword", requestModel.Password);
+		cmd.Parameters.AddWithValue("@UserBalance", requestModel.Balance);
 
 		int result = cmd.ExecuteNonQuery();
 
