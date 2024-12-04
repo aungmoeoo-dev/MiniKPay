@@ -7,16 +7,11 @@ namespace MiniKPay.RestApi.Features.User;
 public class UserModel
 {
 	[Key]
-	[Column("UserId")]
-	public string? Id { get; set; }
-	[Column("UserName")]
-	public string? Name { get; set; }
-	[Column("UserMobileNo")]
-	public string? MobileNo { get; set; }
-	[Column("UserPassword")]
-	public string? Password { get; set; }
-	[Column("UserBalance")]
-	public decimal Balance { get; set; }
+	public string? UserId { get; set; }
+	public string? UserName { get; set; }
+	public string? UserMobileNo { get; set; }
+	public string? UserPassword { get; set; }
+	public decimal UserBalance { get; set; }
 }
 
 public class UserResponseModel

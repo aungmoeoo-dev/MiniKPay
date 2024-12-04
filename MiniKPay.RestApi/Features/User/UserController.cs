@@ -7,20 +7,30 @@ namespace MiniKPay.RestApi.Features.User;
 [ApiController]
 public class UserController : ControllerBase
 {
-	private UserAdoService _userAdoService;
+	private IUserService _userService;
 
 	public UserController()
 	{
-		_userAdoService = new UserAdoService();
+		_userService = new UserDapperService();
 	}
 
 	[HttpPost]
-	public IActionResult CreateUser([FromBody] UserModel requestModel)
+	public IActionResult RegisterUser([FromBody] UserModel requestModel)
 	{
-		var responseModel = _userAdoService.CreateUser(requestModel);
+		var responseModel = _userService.RegisterUser(requestModel);
 
-		if(!responseModel.IsSuccessful) return BadRequest(responseModel);
+		if (!responseModel.IsSuccessful) return BadRequest(responseModel);
 
 		return Created("", responseModel);
+	}
+
+	[HttpGet("{mobileNo}")]
+	public IActionResult GetUser([FromBody] string mobileId)
+	{
+		var user = _userService.GetUser(mobileId);
+
+		if (user is null) return NotFound(user);
+
+		return Ok(user);
 	}
 }
