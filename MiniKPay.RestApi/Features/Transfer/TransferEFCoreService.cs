@@ -1,18 +1,19 @@
-﻿using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using MiniKPay.RestApi.Features.Transaction;
 using MiniKPay.RestApi.Features.User;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace MiniKPay.RestApi.Features.Transfer;
 
-public class TransferAdoService : ITransferService
+public class TransferEFCoreService : ITransferService
 {
 	private IUserService _userService;
+	private AppDbContext _db;
 
-	public TransferAdoService()
+	public TransferEFCoreService()
 	{
-		_userService = new UserAdoService();
+		_userService = new UserEFCoreService();
+		_db = new AppDbContext();
 	}
 
 	private bool TransferOperaions(
@@ -20,62 +21,36 @@ public class TransferAdoService : ITransferService
 		UserModel toUser,
 		TransferModel requestModel)
 	{
-		SqlConnection connection = new(AppSettings.ConnectionString);
 
-		connection.Open();
-
-		SqlTransaction transaction = connection.BeginTransaction();
-
-		SqlCommand cmd = connection.CreateCommand();
-		cmd.Transaction = transaction;
+		using var transaction = _db.Database.BeginTransaction();
 
 		bool isSuccessful;
 		try
 		{
-			string withdrawQuery = @"UPDATE [dbo].[TBL_User]
-   SET [UserBalance] = @NewBalance
- WHERE UserMobileNo = @UserMobileNo";
-
+			fromUser = _db.Users.AsNoTracking().FirstOrDefault(user => user.UserMobileNo == fromUser.UserMobileNo)!;
 			decimal fromUserNewbalance = fromUser.UserBalance - requestModel.TransactionAmount;
+			fromUser.UserBalance = fromUserNewbalance;
+			_db.Entry(fromUser).State = EntityState.Modified;
+			_db.SaveChanges();
 
-			cmd.CommandText = withdrawQuery;
-			cmd.Parameters.AddWithValue("@NewBalance", fromUserNewbalance);
-			cmd.Parameters.AddWithValue("@UserMobileNo", fromUser.UserMobileNo);
-			cmd.ExecuteNonQuery();
-			cmd.Parameters.Clear();
-
-			string depositQuery = @"UPDATE [dbo].[TBL_User]
-   SET [UserBalance] = @NewBalance
- WHERE UserMobileNo = @UserMobileNo";
-
+			toUser = _db.Users.AsNoTracking().FirstOrDefault(user => user.UserMobileNo == toUser.UserMobileNo)!;
 			decimal toUserNewbalance = toUser.UserBalance + requestModel.TransactionAmount;
+			toUser.UserBalance = toUserNewbalance;
+			_db.Entry(toUser).State = EntityState.Modified;
+			_db.SaveChanges();
 
-			cmd.CommandText = depositQuery;
-			cmd.Parameters.AddWithValue("@NewBalance", toUserNewbalance);
-			cmd.Parameters.AddWithValue("@UserMobileNo", toUser.UserMobileNo);
-			cmd.ExecuteNonQuery();
-			cmd.Parameters.Clear();
+			TransactionHistoryModel transactionHistory = new()
+			{
+				TransactionId = Guid.NewGuid().ToString(),
+				FromMobileNo = requestModel.FromMobileNo,
+				ToMobileNo = requestModel.ToMobileNo,
+				TransactionAmount = requestModel.TransactionAmount,
+				TransactionTime = requestModel.TransactionTime,
+				TransactionNotes = requestModel.TransactionNotes,
+			};
 
-			string transactionHistoryQuery = @"INSERT INTO [dbo].[TBL_Transaction]
-           ([FromMobileNo]
-           ,[ToMobileNo]
-           ,[TransactionAmount]
-           ,[TransactionTime]
-           ,[TransactionNotes])
-     VALUES
-           (@FromMobileNo
-           ,@ToMobileNo
-           ,@TransactionAmount
-           ,@TransactionTime
-           ,@TransactionNotes)";
-
-			cmd.CommandText = transactionHistoryQuery;
-			cmd.Parameters.AddWithValue("@FromMobileNo", requestModel.FromMobileNo);
-			cmd.Parameters.AddWithValue("@ToMobileNo", requestModel.ToMobileNo);
-			cmd.Parameters.AddWithValue("@TransactionAmount", requestModel.TransactionAmount);
-			cmd.Parameters.AddWithValue("@TransactionTime", requestModel.TransactionTime);
-			cmd.Parameters.AddWithValue("@TransactionNotes", requestModel.TransactionNotes);
-			cmd.ExecuteNonQuery();
+			_db.Transactions.Add(transactionHistory);
+			_db.SaveChanges();
 
 			transaction.Commit();
 
@@ -95,8 +70,6 @@ public class TransferAdoService : ITransferService
 
 			isSuccessful = false;
 		}
-
-		connection.Close();
 
 		return isSuccessful;
 	}

@@ -47,10 +47,6 @@ public class WithdrawEFCoreService : IWithdrawService
 			return responseModel;
 		}
 
-		string query = @"UPDATE [dbo].[TBL_User]
-   SET [UserBalance] = @NewBalance
- WHERE UserMobileNo = @UserMobileNo";
-
 		user.UserBalance -= requestModel.Amount;
 		_db.Entry(user).State = EntityState.Modified;
 		int result = _db.SaveChanges();

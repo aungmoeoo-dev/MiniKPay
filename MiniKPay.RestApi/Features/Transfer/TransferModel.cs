@@ -2,7 +2,7 @@
 
 namespace MiniKPay.RestApi.Features.Transfer
 {
-	public class TransferModel: TransactionModel
+	public class TransferModel: TransactionHistoryModel
 	{
 		public string? Password { get; set; }
 	}

@@ -7,6 +7,7 @@ public class UserAdoService : IUserService
 {
 	public UserModel GetUser(string mobileNo)
 	{
+		UserModel user = new();
 		SqlConnection connection = new(AppSettings.ConnectionString);
 
 		connection.Open();
@@ -22,17 +23,14 @@ public class UserAdoService : IUserService
 
 		connection.Close();
 
-		DataRow row = dt.Rows[0];
-		var d = row["UserId"];
+		if (dt.Rows.Count == 0) return user;
 
-		UserModel user = new()
-		{
-			UserId = row["UserID"].ToString(),
-			UserName = row["UserName"].ToString(),
-			UserMobileNo = row["UserMobileNo"].ToString(),
-			UserPassword = row["UserPassword"].ToString(),
-			UserBalance = (decimal)row["UserBalance"]
-		};
+		DataRow row = dt.Rows[0];
+		user.UserId = row["UserID"].ToString();
+		user.UserName = row["UserName"].ToString();
+		user.UserMobileNo = row["UserMobileNo"].ToString();
+		user.UserPassword = row["UserPassword"].ToString();
+		user.UserBalance = (decimal)row["UserBalance"];
 
 		return user;
 	}

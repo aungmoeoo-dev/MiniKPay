@@ -12,5 +12,5 @@ public class AppDbContext : DbContext
 	}
 
 	public DbSet<UserModel> Users { get; set; }
-	public DbSet<TransactionModel> Transactions { get; set; }
+	public DbSet<TransactionHistoryModel> Transactions { get; set; }
 }

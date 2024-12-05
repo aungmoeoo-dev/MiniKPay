@@ -7,9 +7,20 @@ namespace MiniKPay.RestApi.Features.Transfer;
 [ApiController]
 public class TransferController : ControllerBase
 {
-	//[HttpPost]
-	//public IActionResult Transfer(TransferModel requestModel)
-	//{
+	private ITransferService _transferAdoService;
 
-	//}
+	public TransferController()
+	{
+		_transferAdoService = new TransferEFCoreService();
+	}
+
+	[HttpPost]
+	public IActionResult Transfer(TransferModel requestModel)
+	{
+		var responseModel = _transferAdoService.Transfer(requestModel);
+
+		if (!responseModel.IsSuccessful) return BadRequest(responseModel);
+
+		return Ok(responseModel);
+	}
 }

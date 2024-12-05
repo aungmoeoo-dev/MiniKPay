@@ -1,18 +1,17 @@
-﻿using Microsoft.AspNetCore.Components.Routing;
+﻿using Dapper;
 using Microsoft.Data.SqlClient;
-using MiniKPay.RestApi.Features.Transaction;
 using MiniKPay.RestApi.Features.User;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Data;
 
 namespace MiniKPay.RestApi.Features.Transfer;
 
-public class TransferAdoService : ITransferService
+public class TransferDapperService : ITransferService
 {
 	private IUserService _userService;
 
-	public TransferAdoService()
+	public TransferDapperService()
 	{
-		_userService = new UserAdoService();
+		_userService = new UserDapperService();
 	}
 
 	private bool TransferOperaions(
@@ -20,41 +19,40 @@ public class TransferAdoService : ITransferService
 		UserModel toUser,
 		TransferModel requestModel)
 	{
-		SqlConnection connection = new(AppSettings.ConnectionString);
+		using IDbConnection connection = new SqlConnection(AppSettings.ConnectionString);
 
 		connection.Open();
 
-		SqlTransaction transaction = connection.BeginTransaction();
-
-		SqlCommand cmd = connection.CreateCommand();
-		cmd.Transaction = transaction;
+		var transaction = connection.BeginTransaction();
 
 		bool isSuccessful;
 		try
 		{
 			string withdrawQuery = @"UPDATE [dbo].[TBL_User]
-   SET [UserBalance] = @NewBalance
+   SET [UserBalance] = @UserBalance
  WHERE UserMobileNo = @UserMobileNo";
 
 			decimal fromUserNewbalance = fromUser.UserBalance - requestModel.TransactionAmount;
 
-			cmd.CommandText = withdrawQuery;
-			cmd.Parameters.AddWithValue("@NewBalance", fromUserNewbalance);
-			cmd.Parameters.AddWithValue("@UserMobileNo", fromUser.UserMobileNo);
-			cmd.ExecuteNonQuery();
-			cmd.Parameters.Clear();
+			connection.Execute(withdrawQuery,
+				new
+				{
+					UserBalance = fromUserNewbalance,
+					UserMobileNo = fromUser.UserMobileNo
+				},transaction);
 
 			string depositQuery = @"UPDATE [dbo].[TBL_User]
-   SET [UserBalance] = @NewBalance
+   SET [UserBalance] = @UserBalance
  WHERE UserMobileNo = @UserMobileNo";
 
 			decimal toUserNewbalance = toUser.UserBalance + requestModel.TransactionAmount;
 
-			cmd.CommandText = depositQuery;
-			cmd.Parameters.AddWithValue("@NewBalance", toUserNewbalance);
-			cmd.Parameters.AddWithValue("@UserMobileNo", toUser.UserMobileNo);
-			cmd.ExecuteNonQuery();
-			cmd.Parameters.Clear();
+			connection.Execute(depositQuery,
+				new
+				{
+					UserBalance = toUserNewbalance,
+					UserMobileNo = toUser.UserMobileNo
+				}, transaction);
 
 			string transactionHistoryQuery = @"INSERT INTO [dbo].[TBL_Transaction]
            ([FromMobileNo]
@@ -69,13 +67,15 @@ public class TransferAdoService : ITransferService
            ,@TransactionTime
            ,@TransactionNotes)";
 
-			cmd.CommandText = transactionHistoryQuery;
-			cmd.Parameters.AddWithValue("@FromMobileNo", requestModel.FromMobileNo);
-			cmd.Parameters.AddWithValue("@ToMobileNo", requestModel.ToMobileNo);
-			cmd.Parameters.AddWithValue("@TransactionAmount", requestModel.TransactionAmount);
-			cmd.Parameters.AddWithValue("@TransactionTime", requestModel.TransactionTime);
-			cmd.Parameters.AddWithValue("@TransactionNotes", requestModel.TransactionNotes);
-			cmd.ExecuteNonQuery();
+			connection.Execute(transactionHistoryQuery,
+				new
+				{
+					FromMobileNo = requestModel.FromMobileNo,
+					ToMobileNo = requestModel.ToMobileNo,
+					TransactionAmount = requestModel.TransactionAmount,
+					TransactionTime = requestModel.TransactionTime,
+					TransactionNotes = requestModel.TransactionNotes,
+				}, transaction);
 
 			transaction.Commit();
 

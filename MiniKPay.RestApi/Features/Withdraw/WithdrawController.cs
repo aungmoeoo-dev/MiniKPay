@@ -16,9 +16,9 @@ public class WithdrawController : ControllerBase
 	}
 
 	[HttpPost]
-	public IActionResult Deposit([FromBody] DepositModel requestModel)
+	public IActionResult Withdraw([FromBody] WithdrawModel requestModel)
 	{
-		var responseModel = _withdrawService.(requestModel);
+		var responseModel = _withdrawService.Withdraw(requestModel);
 
 		if (!responseModel.IsSuccessful) return BadRequest(responseModel);
 
