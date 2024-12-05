@@ -16,7 +16,7 @@ public class TransferEFCoreService : ITransferService
 		_db = new AppDbContext();
 	}
 
-	private bool TransferOperaions(
+	private bool TransferOperations(
 		UserModel fromUser,
 		UserModel toUser,
 		TransferModel requestModel)
@@ -127,7 +127,7 @@ public class TransferEFCoreService : ITransferService
 		}
 
 		requestModel.TransactionTime = DateTime.UtcNow;
-		bool isSuccessful = TransferOperaions(fromUser, toUser, requestModel);
+		bool isSuccessful = TransferOperations(fromUser, toUser, requestModel);
 
 		responseModel.IsSuccessful = isSuccessful;
 		responseModel.Message = isSuccessful ? "Transfer successful." : "Transfer failed.";
