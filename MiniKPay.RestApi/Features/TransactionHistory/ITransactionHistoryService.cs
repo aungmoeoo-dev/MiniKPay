@@ -5,5 +5,6 @@ namespace MiniKPay.RestApi.Features.TransactionHistory
 	public interface ITransactionHistoryService
 	{
 		List<TransactionHistoryModel> GetTransactionHistories();
+		TransactionHistoryModel GetTransactionHistory(string mobileNo);
 	}
 }

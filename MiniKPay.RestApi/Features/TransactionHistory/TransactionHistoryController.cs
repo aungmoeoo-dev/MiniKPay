@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MiniKPay.RestApi.Features.TransactionHistory;
 
-namespace MiniKPay.RestApi.Features.Transaction
+namespace MiniKPay.RestApi.Features.TransactionHistory
 {
 	[Route("api/[controller]")]
 	[ApiController]
@@ -21,6 +20,16 @@ namespace MiniKPay.RestApi.Features.Transaction
 			var histories = _transactionHistoryService.GetTransactionHistories();
 
 			return Ok(histories);
+		}
+
+		[HttpGet("{mobileNo}")]
+		public IActionResult GetTransactionHistory(string mobileNo)
+		{
+			var history = _transactionHistoryService.GetTransactionHistory(mobileNo);
+
+			if (history is null) return NotFound();
+
+			return Ok(history);
 		}
 	}
 }

@@ -16,4 +16,9 @@ public class TransactionHistoryDapperService : ITransactionHistoryService
 
 		return histories;
 	}
+
+	public TransactionHistoryModel GetTransactionHistory(string mobileNo)
+	{
+		throw new NotImplementedException();
+	}
 }

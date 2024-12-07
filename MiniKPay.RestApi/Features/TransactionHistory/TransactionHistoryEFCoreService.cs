@@ -18,4 +18,11 @@ public class TransactionHistoryEFCoreService : ITransactionHistoryService
 
 		return histories;
 	}
+
+	public TransactionHistoryModel GetTransactionHistory(string mobileNo)
+	{
+		var history = _db.Transactions.FirstOrDefault(x => x.FromMobileNo == mobileNo);
+
+		return history;
+	}
 }
