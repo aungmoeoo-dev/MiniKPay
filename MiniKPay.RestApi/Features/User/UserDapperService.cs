@@ -10,7 +10,7 @@ public class UserDapperService : IUserService
 	{
 		using IDbConnection connection = new SqlConnection(AppSettings.ConnectionString);
 
-		string query = "select * from TBL_User where [UserMobileNo] = @UserMobileNo";
+		string query = "select * from TBL_User where UserMobileNo = @UserMobileNo";
 		var user = connection
 			.QueryFirstOrDefault<UserModel>(query, new { UserMobileNo = mobileNo });
 

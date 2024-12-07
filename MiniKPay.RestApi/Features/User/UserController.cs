@@ -25,9 +25,9 @@ public class UserController : ControllerBase
 	}
 
 	[HttpGet("{mobileNo}")]
-	public IActionResult GetUser([FromBody] string mobileId)
+	public IActionResult GetUser(string mobileNo)
 	{
-		var user = _userService.GetUser(mobileId);
+		var user = _userService.GetUser(mobileNo);
 
 		if (user is null) return NotFound(user);
 

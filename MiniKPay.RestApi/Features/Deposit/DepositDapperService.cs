@@ -10,7 +10,7 @@ public class DepositDapperService : IDepositService
 	private IUserService _userService;
 	public DepositDapperService()
 	{
-		_userService = new UserAdoService();
+		_userService = new UserDapperService();
 	}
 
 	public DepositResponseModel Deposit(DepositModel requestModel)

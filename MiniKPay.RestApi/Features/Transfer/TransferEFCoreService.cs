@@ -21,55 +21,34 @@ public class TransferEFCoreService : ITransferService
 		UserModel toUser,
 		TransferModel requestModel)
 	{
-
-		using var transaction = _db.Database.BeginTransaction();
-
 		bool isSuccessful;
-		try
+
+		fromUser = _db.Users.AsNoTracking().FirstOrDefault(user => user.UserMobileNo == fromUser.UserMobileNo)!;
+		decimal fromUserNewbalance = fromUser.UserBalance - requestModel.TransactionAmount;
+		fromUser.UserBalance = fromUserNewbalance;
+		_db.Entry(fromUser).State = EntityState.Modified;
+		bool isWithdrawSuccessful = _db.SaveChanges() > 0;
+
+		toUser = _db.Users.AsNoTracking().FirstOrDefault(user => user.UserMobileNo == toUser.UserMobileNo)!;
+		decimal toUserNewbalance = toUser.UserBalance + requestModel.TransactionAmount;
+		toUser.UserBalance = toUserNewbalance;
+		_db.Entry(toUser).State = EntityState.Modified;
+		bool isDepositSuccessful = _db.SaveChanges() > 0;
+
+		TransactionHistoryModel transactionHistory = new()
 		{
-			fromUser = _db.Users.AsNoTracking().FirstOrDefault(user => user.UserMobileNo == fromUser.UserMobileNo)!;
-			decimal fromUserNewbalance = fromUser.UserBalance - requestModel.TransactionAmount;
-			fromUser.UserBalance = fromUserNewbalance;
-			_db.Entry(fromUser).State = EntityState.Modified;
-			_db.SaveChanges();
+			TransactionId = Guid.NewGuid().ToString(),
+			FromMobileNo = requestModel.FromMobileNo,
+			ToMobileNo = requestModel.ToMobileNo,
+			TransactionAmount = requestModel.TransactionAmount,
+			TransactionTime = requestModel.TransactionTime,
+			TransactionNotes = requestModel.TransactionNotes,
+		};
 
-			toUser = _db.Users.AsNoTracking().FirstOrDefault(user => user.UserMobileNo == toUser.UserMobileNo)!;
-			decimal toUserNewbalance = toUser.UserBalance + requestModel.TransactionAmount;
-			toUser.UserBalance = toUserNewbalance;
-			_db.Entry(toUser).State = EntityState.Modified;
-			_db.SaveChanges();
+		_db.Transactions.Add(transactionHistory);
+		bool isTransactionAdded = _db.SaveChanges() > 0;
 
-			TransactionHistoryModel transactionHistory = new()
-			{
-				TransactionId = Guid.NewGuid().ToString(),
-				FromMobileNo = requestModel.FromMobileNo,
-				ToMobileNo = requestModel.ToMobileNo,
-				TransactionAmount = requestModel.TransactionAmount,
-				TransactionTime = requestModel.TransactionTime,
-				TransactionNotes = requestModel.TransactionNotes,
-			};
-
-			_db.Transactions.Add(transactionHistory);
-			_db.SaveChanges();
-
-			transaction.Commit();
-
-			isSuccessful = true;
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-			try
-			{
-				transaction.Rollback();
-			}
-			catch
-			{
-				Console.WriteLine("Rollback Error!");
-			}
-
-			isSuccessful = false;
-		}
+		isSuccessful = isWithdrawSuccessful && isDepositSuccessful && isTransactionAdded;
 
 		return isSuccessful;
 	}

@@ -7,7 +7,7 @@ namespace MiniKPay.RestApi.Features.Deposit;
 [ApiController]
 public class DepositController : ControllerBase
 {
-	private DepositAdoService _depositAdoService;
+	private IDepositService _depositAdoService;
 
 	public DepositController()
 	{
